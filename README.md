@@ -1,17 +1,18 @@
-This is a refactory of Jonas Schmedtmanns "Mapty" [Visit Mapty App](https://mapty.netlify.app/) project.
+This is a refactory of Jonas Schmedtmanns' "Mapty" [Visit Mapty App](https://mapty.netlify.app/) project.
 
 Added features:
 
 - Edit workouts
 - Delete all workouts
 - Delete single workouts
+- UI redesign
 
 Features to be added:
 
-- Complete visual redesign of App
+- Display weather of workout via API (current)
 - Sort workouts by a certain field
-- Display weather of workout via API
 
+Follow me on social media:
 [Instagram](https://www.instagram.com/codewithmarko)
 [TikTok](https://www.tiktok.com/@codewithmarko)
 [Twitter](https://www.twitter.com/codewithmarko)

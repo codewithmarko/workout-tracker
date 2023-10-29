@@ -5,12 +5,14 @@ class Workout {
   id = (Date.now() + '').slice(-10);
   clicks = 0;
 
-  constructor(coords, distance, duration) {
+  constructor(coords, distance, duration, temperature, windspeed) {
     // this.date = ...
     // this.id = ...
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
     this.duration = duration; // in min
+    this.temperature = temperature;
+    this.windspeed = windspeed;
   }
 
   _setDescription() {
@@ -26,16 +28,45 @@ class Workout {
     } ${thisDay}.`;
   }
 
-  click() {
-    this.clicks++;
+  _setWeather(coords) {
+    const [lat, long] = coords;
+
+    const APIURL = ` https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,windspeed_10m&timezone=Europe%2FBerlin&forecast_days=1`;
+
+    const getJSON = async function (url) {
+      try {
+        const fetchWeather = fetch(url);
+        const res = await fetchWeather;
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(`${data.message} ${res.status}`);
+
+        return data;
+      } catch (err) {
+        throw err;
+      }
+    };
+
+    const setWeatherData = getJSON(APIURL);
+
+    setWeatherData
+      .then((weather) => {
+        console.log(weather);
+        this.temperature = weather.current.temperature_2m;
+        this.windspeed = weather.current.windspeed_10m;
+        console.log(this.temperature_2m);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 }
 
 class Running extends Workout {
   type = 'running';
 
-  constructor(coords, distance, duration, cadence) {
-    super(coords, distance, duration);
+  constructor(coords, distance, duration, temperature, windspeed, cadence) {
+    super(coords, distance, duration, temperature, windspeed);
     this.cadence = cadence;
     this.calcPace();
     this._setDescription();
@@ -51,8 +82,15 @@ class Running extends Workout {
 class Cycling extends Workout {
   type = 'cycling';
 
-  constructor(coords, distance, duration, elevationGain) {
-    super(coords, distance, duration);
+  constructor(
+    coords,
+    distance,
+    duration,
+    temperature,
+    windspeed,
+    elevationGain
+  ) {
+    super(coords, distance, duration, temperature, windspeed);
     this.elevationGain = elevationGain;
     this.calcSpeed();
     this._setDescription();
@@ -146,7 +184,10 @@ class App {
 
     this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    const mapTheme =
+      'https://{s}.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png';
+
+    L.tileLayer(mapTheme, {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
@@ -203,12 +244,16 @@ class App {
   _newWorkout(e) {
     e.preventDefault();
 
+    //Get data from API
+    const temperature = '';
+
     // Get data from form
     const type = inputType.value;
     const distance = +inputDistance.value;
     const duration = +inputDuration.value;
     const { lat, lng } = this.#mapEvent.latlng;
     let workout;
+    console.log({ lat, lng });
 
     // If workout running, create running object
     if (type === 'running') {
@@ -285,6 +330,7 @@ class App {
     //Opens each marker on map
     this.markers.forEach((marker) => {
       this.#map.addLayer(marker);
+      marker._icon.classList.add('marker');
       marker.openPopup();
     });
   }
@@ -301,6 +347,15 @@ class App {
     </div>
     </div>
         <h2 class="workout__title">${workout.description}</h2>
+        <div class="workout__details">
+          <span class="workout__icon">☀️</span>
+          <span class="workout__value">${workout.temperature}</span>
+          <span class="workout__unit">°C</span>
+        </div>
+        <span class="workout__icon">💨</span>
+          <span class="workout__value">${workout.windspeed}</span>
+          <span class="workout__unit">km/h</span>
+        </div>
         <div class="workout__details">
           <span class="workout__icon">${
             workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'
@@ -410,6 +465,7 @@ class App {
     }`;
     this._checkCorrectEditForm(e, workout);
     this._showEditForm(currentNodeIndex);
+    inputDistanceEdit.focus();
   }
 
   _findCurrentWorkoutIndexInParentNode(workout) {

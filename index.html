@@ -28,17 +28,19 @@
 
     <script type="module" src="main.js"></script>
 
-    <title>mapty // Map your workouts</title>
+    <title>Track It - Workout Tracker 🏃‍♂️</title>
   </head>
   <body>
     <div class="sidebar">
-      <h1>MAPTY</h1>
+      <img src="/public/logo-removebg-preview.png" alt="" />
 
       <ul class="workouts">
-        <div class="workouts__delete">
-          <button class="workouts__delete-btn hidden">
-            delete all workouts
-          </button>
+        <div class="workouts__options">
+          <select class="workouts__sort" id="">
+            <option value="duration">Duration</option>
+            <option value="distance">Distance</option>
+          </select>
+          <button class="workouts__delete-btn hidden">DELETE ALL</button>
         </div>
         <form class="form hidden">
           <div class="form__row">
@@ -123,7 +125,7 @@
                 value=""
               />
             </div>
-            <button class="form__editBtn">OK</button>
+            <button class="form__editBtn hidden">OK</button>
           </form>
         </div>
       </ul>
@@ -135,8 +137,14 @@
           target="_blank"
           href="https://twitter.com/jonasschmedtman"
           >Jonas Schmedtmann</a
-        >. Use for learning or your portfolio. Don't use to teach. Don't claim
-        as your own.
+        >. Refactored by
+        <a
+          class="twitter-link"
+          target="_blank"
+          href="https://twitter.com/codewithmarko"
+          >codewithmarko</a
+        >
+        for learning purposes.
       </p>
     </div>
 
