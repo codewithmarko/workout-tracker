@@ -1,9 +1,11 @@
 :root {
+  --color-purple: #8c52ff;
+  --color-green: #;
   --color-brand--1: #ffb545;
-  --color-brand--2: #00c46a;
+  --color-brand--2: #71f55f;
 
-  --color-dark--1: #2d3439;
-  --color-dark--2: #42484d;
+  --color-dark--1: #222427;
+  --color-dark--2: #292339;
   --color-light--1: #aaa;
   --color-light--2: #ececec;
   --color-light--3: rgb(214, 222, 224);
@@ -28,8 +30,8 @@ body {
   height: 100vh;
   overscroll-behavior-y: none;
 
-  background-color: #fff;
-  padding: 2.5rem;
+  background-color: var(--color-purple);
+  padding: 2rem;
 
   display: flex;
 }
@@ -74,6 +76,25 @@ a:visited {
   overflow-x: hidden;
 }
 
+.workouts__options {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4rem;
+  margin-bottom: 3rem;
+}
+
+.workouts__sort {
+  font-size: 1.5rem;
+  padding: 1rem 2rem;
+  background-color: var(--color-purple);
+  border-radius: 5px;
+  color: var(--color-light--2);
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
 .workouts__delete {
   margin-block: 1rem;
   display: flex;
@@ -82,7 +103,7 @@ a:visited {
 
 .workouts__delete-btn {
   color: var(--color-brand--2);
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   transition: all 0.3s;
   &:hover {
@@ -278,6 +299,9 @@ a:visited {
   flex: 1;
   height: 100%;
   background-color: var(--color-light--1);
+}
+.marker {
+  filter: hue-rotate(45deg);
 }
 
 /* Popup width is defined in JS using options */
