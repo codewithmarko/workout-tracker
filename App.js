@@ -4,15 +4,15 @@ class Workout {
   date = new Date();
   id = (Date.now() + '').slice(-10);
   clicks = 0;
+  temperature = null;
+  windspeed = null;
 
-  constructor(coords, distance, duration, temperature, windspeed) {
+  constructor(coords, distance, duration) {
     // this.date = ...
     // this.id = ...
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
     this.duration = duration; // in min
-    this.temperature = temperature;
-    this.windspeed = windspeed;
   }
 
   _setDescription() {
@@ -28,45 +28,38 @@ class Workout {
     } ${thisDay}.`;
   }
 
-  _setWeather(coords) {
+  async _setWeather(coords) {
     const [lat, long] = coords;
+    const APIURL = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,windspeed_10m&timezone=Europe%2FBerlin&forecast_days=1`;
 
-    const APIURL = ` https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,windspeed_10m&timezone=Europe%2FBerlin&forecast_days=1`;
-
-    const getJSON = async function (url) {
-      try {
-        const fetchWeather = fetch(url);
-        const res = await fetchWeather;
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(`${data.message} ${res.status}`);
-
-        return data;
-      } catch (err) {
-        throw err;
+    try {
+      const response = await fetch(APIURL);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch weather data: ${response.status}`);
       }
-    };
 
-    const setWeatherData = getJSON(APIURL);
+      const data = await response.json();
+      this.temperature = data.current.temperature_2m;
+      this.windspeed = data.current.windspeed_10m;
+    } catch (err) {
+      throw err;
+    }
+  }
 
-    setWeatherData
-      .then((weather) => {
-        console.log(weather);
-        this.temperature = weather.current.temperature_2m;
-        this.windspeed = weather.current.windspeed_10m;
-        console.log(this.temperature_2m);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  async caller(coords) {
+    try {
+      await this._setWeather(coords);
+    } catch (err) {
+      console.error('An error occurred while fetching weather data:', err);
+    }
   }
 }
 
 class Running extends Workout {
   type = 'running';
 
-  constructor(coords, distance, duration, temperature, windspeed, cadence) {
-    super(coords, distance, duration, temperature, windspeed);
+  constructor(coords, distance, duration, cadence) {
+    super(coords, distance, duration);
     this.cadence = cadence;
     this.calcPace();
     this._setDescription();
@@ -82,15 +75,8 @@ class Running extends Workout {
 class Cycling extends Workout {
   type = 'cycling';
 
-  constructor(
-    coords,
-    distance,
-    duration,
-    temperature,
-    windspeed,
-    elevationGain
-  ) {
-    super(coords, distance, duration, temperature, windspeed);
+  constructor(coords, distance, duration, elevationGain) {
+    super(coords, distance, duration);
     this.elevationGain = elevationGain;
     this.calcSpeed();
     this._setDescription();
@@ -126,6 +112,14 @@ const inputCadenceEdit = document.querySelector('.form__input-e--cadence');
 const inputElevationEdit = document.querySelector('.form__input-e--elevation');
 let editWorkoutButtons;
 
+//Delete Popup
+const popupLayer = document.querySelector('.popup__layer');
+const popupDeleteAllBtnElm = document.querySelector('.popup__btn--danger');
+const popupCancelBtnElm = document.querySelector('.popup__btn--neutral');
+
+//Map loader
+const mapLoadingLayer = document.querySelector('.map__loader');
+
 let distanceEdited;
 let durationEdited;
 let cadenceEdited;
@@ -140,7 +134,6 @@ class App {
   workouts = [];
 
   constructor() {
-    console.log('APP BEEING INITIAED');
     // Get user's position
     this._getPosition();
 
@@ -159,10 +152,18 @@ class App {
       'click',
       this._containerWorkoutsEventDelegator.bind(this)
     );
-    deleteWorkoutsBtn.addEventListener(
+
+    //Improve UX, delete all workouts
+    deleteWorkoutsBtn.addEventListener('click', this._toggleDeletePopup);
+    popupDeleteAllBtnElm.addEventListener(
       'click',
       this._deleteLocalStorage.bind(this)
     );
+    popupCancelBtnElm.addEventListener('click', this._toggleDeletePopup);
+  }
+
+  _toggleDeletePopup() {
+    popupLayer.classList.toggle('hidden');
   }
 
   _getPosition() {
@@ -175,7 +176,7 @@ class App {
       );
   }
 
-  _loadMap(position) {
+  async _loadMap(position) {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
     // console.log(`https://www.google.pt/maps/@${latitude},${longitude}`);
@@ -191,13 +192,17 @@ class App {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
-
+    console.log('GELADEN');
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
     this.workouts.forEach((work) => {
       this._renderWorkoutMarker(work);
     });
+    //Map loader
+    setTimeout(() => {
+      mapLoadingLayer.classList.add('hidden');
+    }, 200);
   }
 
   _showForm(mapE) {
@@ -241,11 +246,8 @@ class App {
     }
   }
 
-  _newWorkout(e) {
+  async _newWorkout(e) {
     e.preventDefault();
-
-    //Get data from API
-    const temperature = '';
 
     // Get data from form
     const type = inputType.value;
@@ -253,17 +255,18 @@ class App {
     const duration = +inputDuration.value;
     const { lat, lng } = this.#mapEvent.latlng;
     let workout;
-    console.log({ lat, lng });
 
     // If workout running, create running object
     if (type === 'running') {
       const cadence = +inputCadence.value;
 
       const valid = this._inputValidation(type, distance, duration, cadence);
-      console.log(valid);
       if (!valid) return;
       workout = new Running([lat, lng], distance, duration, cadence);
+      await workout.caller([lat, lng]);
     }
+
+    //The issue was, that my workout was beeing rendered before the fetching was finished therefore the weather data could not be displayed properly
 
     // If workout cycling, create cycling object
     if (type === 'cycling') {
@@ -272,6 +275,7 @@ class App {
       const valid = this._inputValidation(type, distance, duration, elevation);
       if (!valid) return;
       workout = new Cycling([lat, lng], distance, duration, elevation);
+      await workout.caller([lat, lng]);
     }
 
     // Add new object to workout array
@@ -280,6 +284,7 @@ class App {
     this._renderWorkoutMarker(workout);
     // Render workout on list
     this._renderWorkout(workout);
+
     // Hide form + clear input fields
     this._hideForm();
     // Set local storage to all workouts
@@ -347,15 +352,7 @@ class App {
     </div>
     </div>
         <h2 class="workout__title">${workout.description}</h2>
-        <div class="workout__details">
-          <span class="workout__icon">☀️</span>
-          <span class="workout__value">${workout.temperature}</span>
-          <span class="workout__unit">°C</span>
-        </div>
-        <span class="workout__icon">💨</span>
-          <span class="workout__value">${workout.windspeed}</span>
-          <span class="workout__unit">km/h</span>
-        </div>
+        
         <div class="workout__details">
           <span class="workout__icon">${
             workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'
@@ -382,7 +379,6 @@ class App {
           <span class="workout__value">${workout.cadence}</span>
           <span class="workout__unit">spm</span>
         </div>
-      </li>
       `;
 
     if (workout.type === 'cycling')
@@ -397,8 +393,20 @@ class App {
           <span class="workout__value">${workout.elevationGain}</span>
           <span class="workout__unit">m</span>
         </div>
-      </li>
       `;
+
+    html += `
+        <div class="workout__details">
+          <span class="workout__icon">☀️</span>
+          <span class="workout__value">${workout.temperature}</span>
+          <span class="workout__unit">°C</span>
+        </div>
+        <div class="workout__details">
+          <span class="workout__icon">💨</span>
+          <span class="workout__value">${workout.windspeed}</span>
+          <span class="workout__unit">km/h</span>
+        </div>
+        </li>`;
 
     workoutsList.insertAdjacentHTML('beforeend', html);
   }
@@ -614,9 +622,8 @@ class App {
   _deleteLocalStorage() {
     if (this.workouts.length > 0) {
       this.reset();
-    } else {
-      console.log(this.workouts.length);
     }
+    this._toggleDeletePopup();
   }
 
   reset() {

@@ -31,62 +31,33 @@
     <title>Track It - Workout Tracker 🏃‍♂️</title>
   </head>
   <body>
-    <div class="sidebar">
-      <img src="/public/logo-removebg-preview.png" alt="" />
-
-      <ul class="workouts">
-        <div class="workouts__options">
-          <select class="workouts__sort" id="">
-            <option value="duration">Duration</option>
-            <option value="distance">Distance</option>
-          </select>
-          <button class="workouts__delete-btn hidden">DELETE ALL</button>
+    <div class="popup__layer hidden">
+      <div class="popup__delete">
+        <h2 class="popup__heading">
+          You are about to delete all your workouts, are you sure?
+        </h2>
+        <div class="popup__btn-container">
+          <button class="popup__btn popup__btn--danger">DELETE</button>
+          <button class="popup__btn popup__btn--neutral">Cancel</button>
         </div>
-        <form class="form hidden">
-          <div class="form__row">
-            <label class="form__label">Type</label>
-            <select class="form__input form__input--type">
-              <option value="running">Running</option>
-              <option value="cycling">Cycling</option>
+      </div>
+    </div>
+    <div class="app">
+      <div class="sidebar">
+        <img src="/logo-removebg-preview.png" alt="" />
+
+        <ul class="workouts">
+          <div class="workouts__options">
+            <select class="workouts__sort" id="">
+              <option value="duration">Duration</option>
+              <option value="distance">Distance</option>
             </select>
+            <button class="workouts__delete-btn hidden">DELETE ALL</button>
           </div>
-          <div class="form__row">
-            <label class="form__label">Distance</label>
-            <input class="form__input form__input--distance" placeholder="km" />
-          </div>
-          <div class="form__row">
-            <label class="form__label">Duration</label>
-            <input
-              class="form__input form__input--duration"
-              placeholder="min"
-            />
-          </div>
-
-          <div class="form__row">
-            <label class="form__label">Cadence</label>
-            <input
-              class="form__input form__input--cadence"
-              placeholder="step/min"
-            />
-          </div>
-          <div class="form__row form__row--hidden">
-            <label class="form__label">Elev Gain</label>
-            <input
-              class="form__input form__input--elevation"
-              placeholder="meters"
-            />
-          </div>
-          <button class="form__btn">OK</button>
-        </form>
-
-        <div class="workouts__container">
-          <form class="editForm hidden">
-            <h2 class="workout__title form__editTitle">
-              Edit workout running on
-            </h2>
+          <form class="form hidden">
             <div class="form__row">
               <label class="form__label">Type</label>
-              <select class="form__input-e form__input-e--type" value="">
+              <select class="form__input form__input--type">
                 <option value="running">Running</option>
                 <option value="cycling">Cycling</option>
               </select>
@@ -94,60 +65,140 @@
             <div class="form__row">
               <label class="form__label">Distance</label>
               <input
-                class="form__input-e form__input-e--distance"
+                class="form__input form__input--distance"
                 placeholder="km"
-                value="59"
               />
             </div>
             <div class="form__row">
               <label class="form__label">Duration</label>
               <input
-                class="form__input-e form__input-e--duration"
+                class="form__input form__input--duration"
                 placeholder="min"
-                value=""
               />
             </div>
 
             <div class="form__row">
               <label class="form__label">Cadence</label>
               <input
-                class="form__input-e form__input-e--cadence"
+                class="form__input form__input--cadence"
                 placeholder="step/min"
-                value=""
               />
             </div>
-
             <div class="form__row form__row--hidden">
               <label class="form__label">Elev Gain</label>
               <input
-                class="form__input-e form__input-e--elevation"
+                class="form__input form__input--elevation"
                 placeholder="meters"
-                value=""
               />
             </div>
-            <button class="form__editBtn hidden">OK</button>
+            <button class="form__btn">OK</button>
           </form>
+
+          <div class="workouts__container">
+            <form class="editForm hidden">
+              <h2 class="workout__title form__editTitle">
+                Edit workout running on
+              </h2>
+              <div class="form__row">
+                <label class="form__label">Type</label>
+                <select class="form__input-e form__input-e--type" value="">
+                  <option value="running">Running</option>
+                  <option value="cycling">Cycling</option>
+                </select>
+              </div>
+              <div class="form__row">
+                <label class="form__label">Distance</label>
+                <input
+                  class="form__input-e form__input-e--distance"
+                  placeholder="km"
+                  value="59"
+                />
+              </div>
+              <div class="form__row">
+                <label class="form__label">Duration</label>
+                <input
+                  class="form__input-e form__input-e--duration"
+                  placeholder="min"
+                  value=""
+                />
+              </div>
+
+              <div class="form__row">
+                <label class="form__label">Cadence</label>
+                <input
+                  class="form__input-e form__input-e--cadence"
+                  placeholder="step/min"
+                  value=""
+                />
+              </div>
+
+              <div class="form__row form__row--hidden">
+                <label class="form__label">Elev Gain</label>
+                <input
+                  class="form__input-e form__input-e--elevation"
+                  placeholder="meters"
+                  value=""
+                />
+              </div>
+              <button class="form__editBtn hidden">OK</button>
+            </form>
+          </div>
+        </ul>
+
+        <p class="copyright">
+          &copy; Copyright by
+          <a
+            class="twitter-link"
+            target="_blank"
+            href="https://twitter.com/jonasschmedtman"
+            >Jonas Schmedtmann</a
+          >. Refactored by
+          <a
+            class="twitter-link"
+            target="_blank"
+            href="https://www.instagram.com/codewithmarko"
+            >codewithmarko</a
+          >
+          for learning purposes.
+        </p>
+      </div>
+
+      <div class="map__container">
+        <div class="map__loader">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6 map__loader-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+            />
+          </svg>
+          <p class="map__loader-p">
+            Loading map
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6 map__loader-p-icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </p>
         </div>
-      </ul>
-
-      <p class="copyright">
-        &copy; Copyright by
-        <a
-          class="twitter-link"
-          target="_blank"
-          href="https://twitter.com/jonasschmedtman"
-          >Jonas Schmedtmann</a
-        >. Refactored by
-        <a
-          class="twitter-link"
-          target="_blank"
-          href="https://twitter.com/codewithmarko"
-          >codewithmarko</a
-        >
-        for learning purposes.
-      </p>
+        <div id="map"></div>
+      </div>
     </div>
-
-    <div id="map"></div>
   </body>
 </html>
