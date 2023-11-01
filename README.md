@@ -20,3 +20,6 @@ Follow me on social media:
 [TikTok](https://www.tiktok.com/@codewithmarko)
 [Twitter](https://www.twitter.com/codewithmarko)
 [YouTube](https://www.youtube.com/@codewith_marko)
+
+
+![Alt text](public/preview.jpg?raw=true "Preview")
