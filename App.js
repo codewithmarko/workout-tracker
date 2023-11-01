@@ -132,10 +132,10 @@ const mapLoadingLayer = document.querySelector('.map__loader');
 //Sorting Elements
 const sortingSelectEl = document.querySelector('.workouts__sort');
 const sortingDurationOptionEl = document.querySelector(
-  'workouts__sort--duration'
+  '.workouts__sort--duration'
 );
 const sortingDistanceOptionEl = document.querySelector(
-  'workouts__sort--distance'
+  '.workouts__sort--distance'
 );
 
 class App {
@@ -166,7 +166,7 @@ class App {
     );
 
     //Sorting function
-    sortingSelectEl.addEventListener('change', this._sortWorkouts);
+    sortingSelectEl.addEventListener('change', this._sortWorkouts.bind(this));
 
     //Improve UX, delete all workouts
     deleteWorkoutsBtn.addEventListener('click', this._toggleDeletePopup);
@@ -176,7 +176,32 @@ class App {
     );
     popupCancelBtnElm.addEventListener('click', this._toggleDeletePopup);
 
-    debug.addEventListener('click', () => {});
+    debug.addEventListener('click', () => {
+      console.log(this.workouts);
+      console.log(this.markers);
+      console.log(workoutsList.childNodes);
+    });
+    this._clearNodeFromTextElm();
+  }
+
+  _sortWorkouts() {
+    //! HIER ENTSTEHT EIN BUG, WENN ICH DAS WORKOUT SORTIERE UND DANN ANSCHLIEßEND ÄNDERE, DANN VERSCHWINDET DER DAZGUGEHRÖIGE MARKER
+    console.log('Start sorting');
+
+    function compareValue(a, b) {
+      const value = sortingSelectEl.value;
+      if (a[value] > b[value]) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+    this.workouts = this.workouts.sort(compareValue);
+    let workout = document.querySelectorAll('li');
+    workout.forEach((work) => work.parentNode.removeChild(work));
+    this.workouts.forEach((work) => {
+      this._renderWorkout(work);
+    });
     this._clearNodeFromTextElm();
   }
 
@@ -218,7 +243,7 @@ class App {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
-    console.log('GELADEN');
+
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
@@ -448,15 +473,6 @@ class App {
     }
   }
 
-  //Das geht aber ist bad practice und schnelchter code.
-  // _createElementFromHTML(htmlString) {
-  //   // const workoutElement = this._createElementFromHTML(html);
-  //   // workoutsList.insertBefore(workoutElement, elementBefore);
-  //   let workoutElement = document.createElement('li');
-  //   workoutElement.innerHTML = htmlString.trim();
-  //   return workoutElement.firstChild;
-  // }
-
   _findWorkoutElSetWorkoutObj(e) {
     const result = {
       workoutEl: null,
@@ -475,9 +491,6 @@ class App {
   }
 
   _moveToPopup(e) {
-    console.log(this.workouts);
-    console.log(this.markers);
-    console.log(workoutsList.childNodes);
     if (!this.#map) return;
     const { workoutEl, workout } = this._findWorkoutElSetWorkoutObj(e);
 
@@ -607,7 +620,7 @@ class App {
 
   _checkCorrectEditForm(e, workout) {
     //Checks which type of workout and toggles the correct input field
-    //TODO refactor
+    //! TODO refactor UNEBDINGT ANSEHEN
     if (
       workout.type === 'running' &&
       inputCadenceEdit
@@ -662,15 +675,6 @@ class App {
     } else if (e.target.closest('.workout__edit')) {
       this._editWorkout(e);
     }
-  }
-
-  _sortWorkouts() {
-    //Remove the empty lines from node for order
-    workoutsList.childNodes.forEach((node, index) => {
-      if (node.nodeName === '#text') {
-        node.parentNode.removeChild(node);
-      }
-    });
   }
 
   _setLocalStorage() {
