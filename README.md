@@ -1,3 +1,6 @@
+![Alt text](public/logo-removebg-preview.png?raw=true "Preview")
+
+
 This is a refactory of Jonas Schmedtmanns' "Mapty" [Visit Mapty App](https://mapty.netlify.app/) project.
 
 Added features:
