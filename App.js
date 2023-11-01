@@ -175,6 +175,17 @@ class App {
       this._deleteLocalStorage.bind(this)
     );
     popupCancelBtnElm.addEventListener('click', this._toggleDeletePopup);
+
+    debug.addEventListener('click', () => {});
+    this._clearNodeFromTextElm();
+  }
+
+  _clearNodeFromTextElm() {
+    workoutsList.childNodes.forEach((node) => {
+      if (node.nodeName === '#text') {
+        node.parentNode.removeChild(node);
+      }
+    });
   }
 
   _toggleDeletePopup() {
@@ -355,7 +366,7 @@ class App {
     });
   }
 
-  _renderWorkout(workout) {
+  _renderWorkout(workout, position) {
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
     <div class="workout__options">
@@ -423,14 +434,28 @@ class App {
         </div>
         </li>`;
 
-    workoutsList.insertAdjacentHTML('beforeend', html);
     //Remove empty space nodes for clean index.
-    workoutsList.childNodes.forEach((node) => {
-      if (node.nodeName === '#text') {
-        node.parentNode.removeChild(node);
-      }
-    });
+    this._clearNodeFromTextElm();
+
+    if (!position) {
+      workoutsList.insertAdjacentHTML('beforeend', html);
+    } else {
+      const i = +position - 1;
+      const elementBefore = workoutsList.childNodes[i];
+      elementBefore.insertAdjacentHTML('afterend', html);
+      //Remove empty spaces for clear node
+      this._clearNodeFromTextElm();
+    }
   }
+
+  //Das geht aber ist bad practice und schnelchter code.
+  // _createElementFromHTML(htmlString) {
+  //   // const workoutElement = this._createElementFromHTML(html);
+  //   // workoutsList.insertBefore(workoutElement, elementBefore);
+  //   let workoutElement = document.createElement('li');
+  //   workoutElement.innerHTML = htmlString.trim();
+  //   return workoutElement.firstChild;
+  // }
 
   _findWorkoutElSetWorkoutObj(e) {
     const result = {
@@ -497,6 +522,7 @@ class App {
     }`;
     this._checkCorrectEditForm(e, workout);
     this._showEditForm(currentNodeIndex);
+    this._clearNodeFromTextElm();
     inputDistanceEdit.focus();
   }
 
@@ -560,16 +586,19 @@ class App {
 
     editForm.classList.add('hidden');
 
-    //! HIER MUSS NOCH GEÄNDERT WERDEN, wenn ein workout gespeichert wird, soll es ander selben position eingefügt werden wie das vorherige.
+    //Get Index of previously unedited workout
+    let currentWorkoutNodeIndex = null;
+    workoutsList.childNodes.forEach((node, index) => {
+      if (node?.dataset?.id === currentWorkout.id) {
+        workoutsList.removeChild(node);
+        return (currentWorkoutNodeIndex = index);
+      }
+    });
 
-    //Manipulate DOM
-    for (const node of workoutsList.childNodes) {
-      node?.dataset?.id === currentWorkout.id
-        ? workoutsList.removeChild(node)
-        : 'NOT FOUND';
-    }
+    //Render new workout and place on right position
+    this._renderWorkout(currentWorkout, currentWorkoutNodeIndex);
 
-    this._renderWorkout(currentWorkout);
+    //take the rendered workout and change the position in node List
     this._setLocalStorage();
 
     //Change marker depending if workout is being edited or not
@@ -609,13 +638,16 @@ class App {
 
     const deleteWorkoutIndex = this.workouts.indexOf(deleteWorkout);
 
+    //Remove workout from all arrays and objects
     this.#map.removeLayer(this.markers[deleteWorkoutIndex]);
-
+    workoutsList.removeChild(currWorkoutEl);
     this.workouts.splice(deleteWorkoutIndex, 1);
     this.markers.splice(deleteWorkoutIndex, 1);
+
     this._setLocalStorage();
+
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
-    currWorkoutEl.classList.add('transform');
+    currWorkoutEl.style.transform = 'translateX(-500px)';
     setTimeout(() => {
       currWorkoutEl.style.display = 'none';
     }, 300);
