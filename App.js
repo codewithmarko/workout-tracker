@@ -90,6 +90,10 @@ class Cycling extends Workout {
 }
 
 ///////////////////////////////////////
+//DEBUG
+
+const debug = document.querySelector('.debug');
+
 // APPLICATION ARCHITECTURE
 const containerWorkouts = document.querySelector('.workouts');
 //Form
@@ -111,6 +115,11 @@ const inputDurationEdit = document.querySelector('.form__input-e--duration');
 const inputCadenceEdit = document.querySelector('.form__input-e--cadence');
 const inputElevationEdit = document.querySelector('.form__input-e--elevation');
 let editWorkoutButtons;
+let distanceEdited;
+let durationEdited;
+let cadenceEdited;
+let workoutMarker;
+let currentEditedWorkoutIndex;
 
 //Delete Popup
 const popupLayer = document.querySelector('.popup__layer');
@@ -120,11 +129,14 @@ const popupCancelBtnElm = document.querySelector('.popup__btn--neutral');
 //Map loader
 const mapLoadingLayer = document.querySelector('.map__loader');
 
-let distanceEdited;
-let durationEdited;
-let cadenceEdited;
-let workoutMarker;
-let currentEditedWorkoutIndex;
+//Sorting Elements
+const sortingSelectEl = document.querySelector('.workouts__sort');
+const sortingDurationOptionEl = document.querySelector(
+  'workouts__sort--duration'
+);
+const sortingDistanceOptionEl = document.querySelector(
+  'workouts__sort--distance'
+);
 
 class App {
   #map;
@@ -152,6 +164,9 @@ class App {
       'click',
       this._containerWorkoutsEventDelegator.bind(this)
     );
+
+    //Sorting function
+    sortingSelectEl.addEventListener('change', this._sortWorkouts);
 
     //Improve UX, delete all workouts
     deleteWorkoutsBtn.addEventListener('click', this._toggleDeletePopup);
@@ -409,6 +424,12 @@ class App {
         </li>`;
 
     workoutsList.insertAdjacentHTML('beforeend', html);
+    //Remove empty space nodes for clean index.
+    workoutsList.childNodes.forEach((node) => {
+      if (node.nodeName === '#text') {
+        node.parentNode.removeChild(node);
+      }
+    });
   }
 
   _findWorkoutElSetWorkoutObj(e) {
@@ -429,6 +450,9 @@ class App {
   }
 
   _moveToPopup(e) {
+    console.log(this.workouts);
+    console.log(this.markers);
+    console.log(workoutsList.childNodes);
     if (!this.#map) return;
     const { workoutEl, workout } = this._findWorkoutElSetWorkoutObj(e);
 
@@ -536,6 +560,8 @@ class App {
 
     editForm.classList.add('hidden');
 
+    //! HIER MUSS NOCH GEÄNDERT WERDEN, wenn ein workout gespeichert wird, soll es ander selben position eingefügt werden wie das vorherige.
+
     //Manipulate DOM
     for (const node of workoutsList.childNodes) {
       node?.dataset?.id === currentWorkout.id
@@ -582,15 +608,17 @@ class App {
     );
 
     const deleteWorkoutIndex = this.workouts.indexOf(deleteWorkout);
-    currWorkoutEl.style.display = 'none';
-
-    //Remove workout and marker from arr
-    this.workouts.splice(deleteWorkoutIndex, 1);
-    this.markers.splice(deleteWorkoutIndex, 1);
 
     this.#map.removeLayer(this.markers[deleteWorkoutIndex]);
+
+    this.workouts.splice(deleteWorkoutIndex, 1);
+    this.markers.splice(deleteWorkoutIndex, 1);
     this._setLocalStorage();
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
+    currWorkoutEl.classList.add('transform');
+    setTimeout(() => {
+      currWorkoutEl.style.display = 'none';
+    }, 300);
   }
 
   _containerWorkoutsEventDelegator(e) {
@@ -602,6 +630,15 @@ class App {
     } else if (e.target.closest('.workout__edit')) {
       this._editWorkout(e);
     }
+  }
+
+  _sortWorkouts() {
+    //Remove the empty lines from node for order
+    workoutsList.childNodes.forEach((node, index) => {
+      if (node.nodeName === '#text') {
+        node.parentNode.removeChild(node);
+      }
+    });
   }
 
   _setLocalStorage() {

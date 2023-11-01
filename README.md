@@ -6,11 +6,11 @@ Added features:
 - Delete all workouts
 - Delete single workouts
 - UI redesign
+- Display weather of workout via API
 
 Features to be added:
 
-- Display weather of workout via API (current)
-- Sort workouts by a certain field
+- Sort workouts by a certain field (current)
 
 Follow me on social media:
 [Instagram](https://www.instagram.com/codewithmarko)

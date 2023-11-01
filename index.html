@@ -28,7 +28,7 @@
 
     <script type="module" src="main.js"></script>
 
-    <title>Track It - Workout Tracker 🏃‍♂️</title>
+    <title>🚀 Track It - Workout Tracker 🏃‍♂️</title>
   </head>
   <body>
     <div class="popup__layer hidden">
@@ -44,13 +44,17 @@
     </div>
     <div class="app">
       <div class="sidebar">
-        <img src="/logo-removebg-preview.png" alt="" />
+        <img class="debug" src="/logo-removebg-preview.png" alt="" />
 
         <ul class="workouts">
           <div class="workouts__options">
             <select class="workouts__sort" id="">
-              <option value="duration">Duration</option>
-              <option value="distance">Distance</option>
+              <option class="workouts__sort--duration" value="duration">
+                Duration
+              </option>
+              <option class="workouts__sort--distance" value="distance">
+                Distance
+              </option>
             </select>
             <button class="workouts__delete-btn hidden">DELETE ALL</button>
           </div>
