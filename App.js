@@ -140,12 +140,31 @@ const sortingDistanceOptionEl = document.querySelector(
 
 class App {
   #map;
-  #mapZoomLevel = 13;
+  #mapZoomLevel = 11; // 13;
   #mapEvent;
   markers = [];
-  workouts = [];
+  workouts = [
+    // {
+    //   cadence: 1,
+    //   clicks: 0,
+    //   coords: [47.93566683402829, 16.152427836116118],
+    //   date: '2023-11-02T15:21:33.281Z',
+    //   description: 'Debugging 1',
+    //   distance: 1,
+    //   duration: 1,
+    //   elevationGain: 3,
+    //   id: '8938493281',
+    //   pace: 1,
+    //   speed: 60,
+    //   temperature: 15.3,
+    //   type: 'running',
+    //   windspeed: 13.2,
+    // },
+  ];
 
   constructor() {
+    this.workouts.forEach((workout) => this._renderWorkout(workout));
+
     // Get user's position
     this._getPosition();
 
@@ -177,7 +196,9 @@ class App {
     popupCancelBtnElm.addEventListener('click', this._toggleDeletePopup);
 
     debug.addEventListener('click', () => {
+      console.log('WorkoutsArr:');
       console.log(this.workouts);
+      console.log('MarkersArr:');
       console.log(this.markers);
       console.log(workoutsList.childNodes);
     });
@@ -185,7 +206,6 @@ class App {
   }
 
   _sortWorkouts() {
-    //! HIER ENTSTEHT EIN BUG, WENN ICH DAS WORKOUT SORTIERE UND DANN ANSCHLIEßEND ÄNDERE, DANN VERSCHWINDET DER DAZGUGEHRÖIGE MARKER
     console.log('Start sorting');
 
     function compareValue(a, b) {
@@ -196,6 +216,7 @@ class App {
         return 0;
       }
     }
+    //! Bug entsteht dadurch, dass Workout Arr und Marker Arr immer gleich sein müssen von den indizes her. Dies ist nicht mehr der Fall nach dem sortieren daher wird der falsche Marker gelsöcht.
     this.workouts = this.workouts.sort(compareValue);
     let workout = document.querySelectorAll('li');
     workout.forEach((work) => work.parentNode.removeChild(work));
@@ -209,6 +230,14 @@ class App {
     workoutsList.childNodes.forEach((node) => {
       if (node.nodeName === '#text') {
         node.parentNode.removeChild(node);
+      }
+    });
+  }
+
+  _setEditFormPosition() {
+    workoutsList.childNodes.forEach((node) => {
+      if (node.nodeName === 'FORM') {
+        node.parentNode.insertBefore(node, workoutsList.childNodes[0]);
       }
     });
   }
@@ -317,8 +346,6 @@ class App {
       await workout.caller([lat, lng]);
     }
 
-    //The issue was, that my workout was beeing rendered before the fetching was finished therefore the weather data could not be displayed properly
-
     // If workout cycling, create cycling object
     if (type === 'cycling') {
       const elevation = +inputElevation.value;
@@ -376,9 +403,12 @@ class App {
 
     //Checks if workout is beeing edited if true then old marker is being replaced in Array
     if (checker === true) {
+      //! Bug entsteht hier
+
       this.#map.removeLayer(this.markers[currentEditedWorkoutIndex]);
-      this.markers.splice(currentEditedWorkoutIndex, 1);
-      this.markers.splice(currentEditedWorkoutIndex, 0, workoutMarker);
+
+      //! Weg finden um var neu zu defnineren, wenn workout sortiert wird.
+      this.markers.splice(currentEditedWorkoutIndex, 1, workoutMarker);
     } else {
       this.markers.push(workoutMarker);
     }
@@ -517,6 +547,7 @@ class App {
     this._moveToPopup(e);
 
     const currentNodeIndex = this._findCurrentWorkoutIndexInParentNode(workout);
+    currentEditedWorkoutIndex = null;
     currentEditedWorkoutIndex = this.workouts.indexOf(workout);
 
     //Reassign the values of current workout
@@ -557,6 +588,7 @@ class App {
 
   _safeEditedWorkout(e) {
     e.preventDefault();
+
     const currentWorkout = this.workouts[currentEditedWorkoutIndex];
 
     //Reassigning all values
@@ -608,19 +640,18 @@ class App {
       }
     });
 
+    this._setLocalStorage();
+
     //Render new workout and place on right position
     this._renderWorkout(currentWorkout, currentWorkoutNodeIndex);
 
-    //take the rendered workout and change the position in node List
-    this._setLocalStorage();
-
-    //Change marker depending if workout is being edited or not
+    //Different render function if second attribute is true
     this._renderWorkoutMarker(currentWorkout, true);
+    this._setEditFormPosition();
   }
 
   _checkCorrectEditForm(e, workout) {
     //Checks which type of workout and toggles the correct input field
-    //! TODO refactor UNEBDINGT ANSEHEN
     if (
       workout.type === 'running' &&
       inputCadenceEdit
@@ -644,25 +675,22 @@ class App {
   }
 
   _deleteWorkout(e) {
-    const currWorkoutEl = e.target.closest('.workout');
-    const deleteWorkout = this.workouts.find(
-      (work) => work.id === currWorkoutEl.dataset.id
-    );
+    const { workoutEl: currWorkoutEl, workout: deleteWorkout } =
+      this._findWorkoutElSetWorkoutObj(e);
 
     const deleteWorkoutIndex = this.workouts.indexOf(deleteWorkout);
 
     //Remove workout from all arrays and objects
     this.#map.removeLayer(this.markers[deleteWorkoutIndex]);
-    workoutsList.removeChild(currWorkoutEl);
     this.workouts.splice(deleteWorkoutIndex, 1);
     this.markers.splice(deleteWorkoutIndex, 1);
-
-    this._setLocalStorage();
 
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
     currWorkoutEl.style.transform = 'translateX(-500px)';
     setTimeout(() => {
       currWorkoutEl.style.display = 'none';
+      workoutsList.removeChild(currWorkoutEl);
+      this._setLocalStorage();
     }, 300);
   }
 
