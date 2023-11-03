@@ -11,6 +11,11 @@ Added features:
 - Display weather of workout via API
 - Sort workouts by a duration or distance (descending)
 
+Feature ideas:
+
+- Responsive design
+- improved Error messages
+
 Follow me on social media:
 [Instagram](https://www.instagram.com/codewithmarko)
 [TikTok](https://www.tiktok.com/@codewithmarko)
