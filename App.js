@@ -141,6 +141,8 @@ let cadenceEdited;
 // let workoutMarker;
 let currentEditedWorkoutIndex;
 
+//
+
 //Delete Popup
 const popupLayer = document.querySelector('.popup__layer');
 const popupDeleteAllBtnElm = document.querySelector('.popup__btn--danger');
@@ -162,34 +164,17 @@ class App {
   #map;
   #mapZoomLevel = 11; // 13;
   #mapEvent;
+
   markers = [];
-  workouts = [
-    // {
-    //   cadence: 1,
-    //   clicks: 0,
-    //   coords: [47.93566683402829, 16.152427836116118],
-    //   date: '2023-11-02T15:21:33.281Z',
-    //   description: 'Debugging 1',
-    //   distance: 1,
-    //   duration: 1,
-    //   elevationGain: 3,
-    //   id: '8938493281',
-    //   pace: 1,
-    //   speed: 60,
-    //   temperature: 15.3,
-    //   type: 'running',
-    //   windspeed: 13.2,
-    // },
-  ];
+  workouts = [];
 
   constructor() {
-    // this.workouts.forEach((workout) => this._renderWorkout(workout));
-
     // Get user's position
     this._getPosition();
 
     // Get data from local storage
     this._getLocalStorage();
+    this.workouts.forEach((workout) => this._renderWorkout(workout));
 
     //Toggles Button if no workouts saved
     this._showDeleteWorkoutsBtn();
@@ -218,6 +203,7 @@ class App {
     debug.addEventListener('click', () => {
       console.log('WorkoutsArr:');
       console.log(this.workouts);
+      console.log();
     });
     this._clearNodeFromTextElm();
   }
@@ -292,9 +278,8 @@ class App {
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
-    // this.workouts.forEach((work) => {
-    //   this._renderWorkoutMarker(work);
-    // });
+    this._renderWorkoutMarker();
+
     //Map loader
     setTimeout(() => {
       mapLoadingLayer.classList.add('hidden');
@@ -372,19 +357,18 @@ class App {
       await workout.caller([lat, lng]);
     }
     this.workouts.push(workout);
-    this._renderWorkoutMarker();
 
-    // Add new object to workout array
     // Render workout on map as marker
-    //! this._renderWorkoutMarker(workout);
-
+    if (workout?.marker) {
+      this._renderWorkoutMarker();
+    }
     // Render workout on list
     this._renderWorkout(workout);
 
     // Hide form + clear input fields
     this._hideForm();
     // Set local storage to all workouts
-    //! this._setLocalStorage() --> macht probleme;
+    this._setLocalStorage();
     this._showDeleteWorkoutsBtn();
   }
 
@@ -402,42 +386,6 @@ class App {
       return true;
     }
   }
-
-  //! _renderWorkoutMarker(workout, checker = false) {
-  //   workoutMarker = L.marker(workout.coords);
-  //   workoutMarker
-  //     .bindPopup(
-  //       L.popup({
-  //         maxWidth: 50,
-  //         minWidth: 100,
-  //         autoClose: false,
-  //         closeOnClick: false,
-  //         className: `${workout.type}-popup`,
-  //       })
-  //     )
-  //     .setPopupContent(
-  //       `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`
-  //     );
-
-  //   //Checks if workout is beeing edited if true then old marker is being replaced in Array
-  //   if (checker === true) {
-  //     //! Bug entsteht hier
-
-  //     this.#map.removeLayer(this.markers[currentEditedWorkoutIndex]);
-
-  //     //! Weg finden um var neu zu defnineren, wenn workout sortiert wird.
-  //     this.markers.splice(currentEditedWorkoutIndex, 1, workoutMarker);
-  //   } else {
-  //     this.markers.push(workoutMarker);
-  //   }
-
-  //   //Opens each marker on map
-  //   this.markers.forEach((marker) => {
-  //     this.#map.addLayer(marker);
-  //     marker._icon.classList.add('marker');
-  //     marker.openPopup();
-  //   });
-  // }
 
   _renderWorkoutMarker() {
     this.workouts.forEach((workout) => {
@@ -692,13 +640,11 @@ class App {
       }
     });
 
-    //! this._setLocalStorage();
+    this._setLocalStorage();
 
     //Render new workout and place on right position
     this._renderWorkout(currentWorkout, currentWorkoutNodeIndex);
 
-    //Different render function if second attribute is true
-    //! this._renderWorkoutMarker(currentWorkout, true);
     this._setEditFormPosition();
   }
 
@@ -737,7 +683,7 @@ class App {
 
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
 
-    //! this._setLocalStorage();
+    this._setLocalStorage();
 
     currWorkoutEl.style.transform = 'translateX(-500px)';
     setTimeout(() => {
@@ -758,18 +704,29 @@ class App {
   }
 
   _setLocalStorage() {
-    localStorage.setItem('workouts', JSON.stringify(this.workouts));
+    //Remove marker from localStorage as it causes a bug
+    const cleanWorkouts = this.workouts.map((workout) => {
+      const { marker, ...cleanedWorkout } = workout;
+      console.log(cleanedWorkout);
+      return cleanedWorkout;
+    });
+
+    // localStorage.setItem('workouts', JSON.stringify(this.workouts));
+    localStorage.setItem('workouts', JSON.stringify(cleanWorkouts));
   }
 
   _getLocalStorage() {
+    //get Workouts from LocalStorage
     const data = JSON.parse(localStorage.getItem('workouts'));
 
     if (!data) return;
     this.workouts = data;
-
+    //Create new Marker
     this.workouts.forEach((work) => {
-      this._renderWorkout(work);
+      work.marker = this._createNewMarker(work);
     });
+
+    console.log(this.workouts);
   }
 
   _deleteLocalStorage() {
@@ -782,12 +739,14 @@ class App {
   reset() {
     let workout = document.querySelectorAll('li');
     workout.forEach((work) => work.parentNode.removeChild(work));
-    this.markers.forEach((marker) => marker.remove());
+    this.workouts.forEach((workout) => workout.marker.remove());
     this.workouts = [];
-    this.markers = [];
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
     localStorage.removeItem('workouts');
   }
 }
 
 const app = new App();
+
+//Lösung: ich speichere den Marker nicht im LocalStorage
+//Beim laden der App wird jeder Marker neu generiert
