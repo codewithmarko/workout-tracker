@@ -28,6 +28,24 @@ class Workout {
     } ${thisDay}.`;
   }
 
+  _createMarker(coords) {
+    const workoutMarker = L.marker(coords)
+      .bindPopup(
+        L.popup({
+          maxWidth: 50,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false,
+          className: `${this.type}-popup`,
+        })
+      )
+      .setPopupContent(
+        `${this.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${this.description}`
+      );
+    console.log(workoutMarker);
+    return workoutMarker;
+  }
+
   async _setWeather(coords) {
     const [lat, long] = coords;
     const APIURL = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,windspeed_10m&timezone=Europe%2FBerlin&forecast_days=1`;
@@ -63,6 +81,7 @@ class Running extends Workout {
     this.cadence = cadence;
     this.calcPace();
     this._setDescription();
+    this.marker = this._createMarker(coords);
   }
 
   calcPace() {
@@ -80,6 +99,7 @@ class Cycling extends Workout {
     this.elevationGain = elevationGain;
     this.calcSpeed();
     this._setDescription();
+    this.marker = this._createMarker(coords);
   }
 
   calcSpeed() {
@@ -118,7 +138,7 @@ let editWorkoutButtons;
 let distanceEdited;
 let durationEdited;
 let cadenceEdited;
-let workoutMarker;
+// let workoutMarker;
 let currentEditedWorkoutIndex;
 
 //Delete Popup
@@ -163,7 +183,7 @@ class App {
   ];
 
   constructor() {
-    this.workouts.forEach((workout) => this._renderWorkout(workout));
+    // this.workouts.forEach((workout) => this._renderWorkout(workout));
 
     // Get user's position
     this._getPosition();
@@ -198,9 +218,6 @@ class App {
     debug.addEventListener('click', () => {
       console.log('WorkoutsArr:');
       console.log(this.workouts);
-      console.log('MarkersArr:');
-      console.log(this.markers);
-      console.log(workoutsList.childNodes);
     });
     this._clearNodeFromTextElm();
   }
@@ -216,7 +233,6 @@ class App {
         return 0;
       }
     }
-    //! Bug entsteht dadurch, dass Workout Arr und Marker Arr immer gleich sein müssen von den indizes her. Dies ist nicht mehr der Fall nach dem sortieren daher wird der falsche Marker gelsöcht.
     this.workouts = this.workouts.sort(compareValue);
     let workout = document.querySelectorAll('li');
     workout.forEach((work) => work.parentNode.removeChild(work));
@@ -276,9 +292,9 @@ class App {
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
 
-    this.workouts.forEach((work) => {
-      this._renderWorkoutMarker(work);
-    });
+    // this.workouts.forEach((work) => {
+    //   this._renderWorkoutMarker(work);
+    // });
     //Map loader
     setTimeout(() => {
       mapLoadingLayer.classList.add('hidden');
@@ -355,18 +371,20 @@ class App {
       workout = new Cycling([lat, lng], distance, duration, elevation);
       await workout.caller([lat, lng]);
     }
+    this.workouts.push(workout);
+    this._renderWorkoutMarker();
 
     // Add new object to workout array
-    this.workouts.push(workout);
     // Render workout on map as marker
-    this._renderWorkoutMarker(workout);
+    //! this._renderWorkoutMarker(workout);
+
     // Render workout on list
     this._renderWorkout(workout);
 
     // Hide form + clear input fields
     this._hideForm();
     // Set local storage to all workouts
-    this._setLocalStorage();
+    //! this._setLocalStorage() --> macht probleme;
     this._showDeleteWorkoutsBtn();
   }
 
@@ -385,39 +403,47 @@ class App {
     }
   }
 
-  _renderWorkoutMarker(workout, checker = false) {
-    workoutMarker = L.marker(workout.coords);
-    workoutMarker
-      .bindPopup(
-        L.popup({
-          maxWidth: 50,
-          minWidth: 100,
-          autoClose: false,
-          closeOnClick: false,
-          className: `${workout.type}-popup`,
-        })
-      )
-      .setPopupContent(
-        `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`
-      );
+  //! _renderWorkoutMarker(workout, checker = false) {
+  //   workoutMarker = L.marker(workout.coords);
+  //   workoutMarker
+  //     .bindPopup(
+  //       L.popup({
+  //         maxWidth: 50,
+  //         minWidth: 100,
+  //         autoClose: false,
+  //         closeOnClick: false,
+  //         className: `${workout.type}-popup`,
+  //       })
+  //     )
+  //     .setPopupContent(
+  //       `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`
+  //     );
 
-    //Checks if workout is beeing edited if true then old marker is being replaced in Array
-    if (checker === true) {
-      //! Bug entsteht hier
+  //   //Checks if workout is beeing edited if true then old marker is being replaced in Array
+  //   if (checker === true) {
+  //     //! Bug entsteht hier
 
-      this.#map.removeLayer(this.markers[currentEditedWorkoutIndex]);
+  //     this.#map.removeLayer(this.markers[currentEditedWorkoutIndex]);
 
-      //! Weg finden um var neu zu defnineren, wenn workout sortiert wird.
-      this.markers.splice(currentEditedWorkoutIndex, 1, workoutMarker);
-    } else {
-      this.markers.push(workoutMarker);
-    }
+  //     //! Weg finden um var neu zu defnineren, wenn workout sortiert wird.
+  //     this.markers.splice(currentEditedWorkoutIndex, 1, workoutMarker);
+  //   } else {
+  //     this.markers.push(workoutMarker);
+  //   }
 
-    //Opens each marker on map
-    this.markers.forEach((marker) => {
-      this.#map.addLayer(marker);
-      marker._icon.classList.add('marker');
-      marker.openPopup();
+  //   //Opens each marker on map
+  //   this.markers.forEach((marker) => {
+  //     this.#map.addLayer(marker);
+  //     marker._icon.classList.add('marker');
+  //     marker.openPopup();
+  //   });
+  // }
+
+  _renderWorkoutMarker() {
+    this.workouts.forEach((workout) => {
+      this.#map.addLayer(workout.marker);
+      workout.marker._icon.classList.add('marker');
+      workout.marker.openPopup();
     });
   }
 
@@ -646,7 +672,7 @@ class App {
     this._renderWorkout(currentWorkout, currentWorkoutNodeIndex);
 
     //Different render function if second attribute is true
-    this._renderWorkoutMarker(currentWorkout, true);
+    //! this._renderWorkoutMarker(currentWorkout, true);
     this._setEditFormPosition();
   }
 
@@ -681,16 +707,16 @@ class App {
     const deleteWorkoutIndex = this.workouts.indexOf(deleteWorkout);
 
     //Remove workout from all arrays and objects
-    this.#map.removeLayer(this.markers[deleteWorkoutIndex]);
     this.workouts.splice(deleteWorkoutIndex, 1);
-    this.markers.splice(deleteWorkoutIndex, 1);
+    this.#map.removeLayer(deleteWorkout.marker);
 
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
+
     currWorkoutEl.style.transform = 'translateX(-500px)';
     setTimeout(() => {
       currWorkoutEl.style.display = 'none';
       workoutsList.removeChild(currWorkoutEl);
-      this._setLocalStorage();
+      //! this._setLocalStorage();
     }, 300);
   }
 
