@@ -8,8 +8,6 @@ class Workout {
   windspeed = null;
 
   constructor(coords, distance, duration) {
-    // this.date = ...
-    // this.id = ...
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
     this.duration = duration; // in min
@@ -42,7 +40,6 @@ class Workout {
       .setPopupContent(
         `${this.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${this.description}`
       );
-    console.log(workoutMarker);
     return workoutMarker;
   }
 
@@ -110,9 +107,6 @@ class Cycling extends Workout {
 }
 
 ///////////////////////////////////////
-//DEBUG
-
-const debug = document.querySelector('.debug');
 
 // APPLICATION ARCHITECTURE
 const containerWorkouts = document.querySelector('.workouts');
@@ -200,17 +194,10 @@ class App {
     );
     popupCancelBtnElm.addEventListener('click', this._toggleDeletePopup);
 
-    debug.addEventListener('click', () => {
-      console.log('WorkoutsArr:');
-      console.log(this.workouts);
-      console.log();
-    });
     this._clearNodeFromTextElm();
   }
 
   _sortWorkouts() {
-    console.log('Start sorting');
-
     function compareValue(a, b) {
       const value = sortingSelectEl.value;
       if (a[value] > b[value]) {
@@ -693,7 +680,6 @@ class App {
   }
 
   _containerWorkoutsEventDelegator(e) {
-    console.log('Event Delegator activated');
     if (e.target.classList.contains('workout')) {
       this._moveToPopup(e);
     } else if (e.target.classList.contains('workout__delete')) {
@@ -707,7 +693,6 @@ class App {
     //Remove marker from localStorage as it causes a bug
     const cleanWorkouts = this.workouts.map((workout) => {
       const { marker, ...cleanedWorkout } = workout;
-      console.log(cleanedWorkout);
       return cleanedWorkout;
     });
 
@@ -725,8 +710,6 @@ class App {
     this.workouts.forEach((work) => {
       work.marker = this._createNewMarker(work);
     });
-
-    console.log(this.workouts);
   }
 
   _deleteLocalStorage() {

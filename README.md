@@ -1,5 +1,4 @@
-![Alt text](public/logo-removebg-preview.png?raw=true "Preview")
-
+![Alt text](public/logo-removebg-preview.png?raw=true 'Preview')
 
 This is a refactory of Jonas Schmedtmanns' "Mapty" [Visit Mapty App](https://mapty.netlify.app/) project.
 
@@ -10,10 +9,7 @@ Added features:
 - Delete single workouts
 - UI redesign
 - Display weather of workout via API
-
-Features to be added:
-
-- Sort workouts by a certain field (current)
+- Sort workouts by a duration or distance (descending)
 
 Follow me on social media:
 [Instagram](https://www.instagram.com/codewithmarko)
@@ -21,5 +17,4 @@ Follow me on social media:
 [Twitter](https://www.twitter.com/codewithmarko)
 [YouTube](https://www.youtube.com/@codewith_marko)
 
-
-![Alt text](public/preview.jpg?raw=true "Preview")
+![Alt text](public/preview.jpg?raw=true 'Preview')
