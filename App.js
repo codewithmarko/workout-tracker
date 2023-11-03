@@ -747,6 +747,3 @@ class App {
 }
 
 const app = new App();
-
-//Lösung: ich speichere den Marker nicht im LocalStorage
-//Beim laden der App wird jeder Marker neu generiert
