@@ -521,6 +521,7 @@ class App {
     if (!position) {
       workoutsList.insertAdjacentHTML('beforeend', html);
     } else {
+      this._renderWorkoutMarker();
       const i = +position - 1;
       const elementBefore = workoutsList.childNodes[i];
       elementBefore.insertAdjacentHTML('afterend', html);
@@ -590,10 +591,29 @@ class App {
     editForm.style.backgroundColor = `${
       workout.type === 'cycling' ? '#ffb545' : '#00c46a'
     }`;
+
+    //Decide which editForm is being shown
     this._checkCorrectEditForm(e, workout);
     this._showEditForm(currentNodeIndex);
     this._clearNodeFromTextElm();
     inputDistanceEdit.focus();
+  }
+
+  _createNewMarker(workout) {
+    const workoutMarker = L.marker(workout.coords)
+      .bindPopup(
+        L.popup({
+          maxWidth: 50,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false,
+          className: `${workout.type}-popup`,
+        })
+      )
+      .setPopupContent(
+        `${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`
+      );
+    return workoutMarker;
   }
 
   _findCurrentWorkoutIndexInParentNode(workout) {
@@ -630,6 +650,7 @@ class App {
       currentWorkout.speed =
         currentWorkout.distance / (currentWorkout.duration / 60);
     }
+
     //Changing the description
     const months = [
       'January',
@@ -655,6 +676,11 @@ class App {
       1
     )} on ${months[monthIndex]} ${currentWorkoutDay}.`;
 
+    //Change marker in Workout
+    this.#map.removeLayer(currentWorkout.marker);
+    currentWorkout.marker = null;
+    currentWorkout.marker = this._createNewMarker(currentWorkout);
+
     editForm.classList.add('hidden');
 
     //Get Index of previously unedited workout
@@ -666,7 +692,7 @@ class App {
       }
     });
 
-    this._setLocalStorage();
+    //! this._setLocalStorage();
 
     //Render new workout and place on right position
     this._renderWorkout(currentWorkout, currentWorkoutNodeIndex);
@@ -703,20 +729,20 @@ class App {
   _deleteWorkout(e) {
     const { workoutEl: currWorkoutEl, workout: deleteWorkout } =
       this._findWorkoutElSetWorkoutObj(e);
-
     const deleteWorkoutIndex = this.workouts.indexOf(deleteWorkout);
 
-    //Remove workout from all arrays and objects
+    //Remove workout from array and map
     this.workouts.splice(deleteWorkoutIndex, 1);
     this.#map.removeLayer(deleteWorkout.marker);
 
     this.workouts.length === 0 ? this._showDeleteWorkoutsBtn() : '';
 
+    //! this._setLocalStorage();
+
     currWorkoutEl.style.transform = 'translateX(-500px)';
     setTimeout(() => {
       currWorkoutEl.style.display = 'none';
       workoutsList.removeChild(currWorkoutEl);
-      //! this._setLocalStorage();
     }, 300);
   }
 
